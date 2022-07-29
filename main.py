@@ -4,27 +4,33 @@ from pathlib import Path
 import sys, random
 
 class App(Tk):
-    VER = "1.0"
+    VER = "1.1"
     def __init__(self):
         super().__init__()
         self.title(f"Corruptor {App.VER}")
-        self.geometry("500x370")
+        self.geometry("500x400")
 
         self.file = ""
         self.new_file = ""
         self.is_random = BooleanVar()
         self.is_replaced = BooleanVar()
 
-        # menu
+        # ------------- menu ---------------
+        
         self.menu = Menu(self)
         self.file_menu = Menu(self.menu, tearoff=False)
+
         self.file_menu.add_command(label="attach file", command=self.attach_file)
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Exit", command=lambda: sys.exit())
+
         self.menu.add_cascade(label="File", menu=self.file_menu)
+
         self.configure(menu=self.menu)
 
-        self.file_label = Label(self, text="No file selected")
+        # -----------------------------------
+
+        self.file_label = Label(self, text="No file attached")
         self.file_label.pack(pady=5)
 
         self.mainFrame = Frame(self)
@@ -44,8 +50,8 @@ class App(Tk):
         self.endByteEntry.insert(0, str(0))
         self.endByteEntry.grid(row=1, column=1, padx=5)
 
-        self.autoEndButton = Button(self.mainFrame, text="Auto end", command=self.auto_end_func)
-        self.autoEndButton.grid(row=1, column=2, padx=5)
+        self.autoFillButton = Button(self.mainFrame, text="Auto fill", command=self.auto_end_func)
+        self.autoFillButton.grid(row=1, column=2, padx=5)
 
         self.autoEndByteLabel = Label(self.mainFrame, text="Start byte")
         self.autoEndByteLabel.grid(row=0, column=0)
@@ -71,7 +77,30 @@ class App(Tk):
         self.addByteEntry.insert(0, str(0))
         self.addByteEntry.grid(row=4, column=1, padx=5)
 
-        self.randomCheckButton = Checkbutton(self, text="Randomized bytes", variable=self.is_random, onvalue=True, offvalue=False)
+        # -------------- Hidden -----------------
+
+        self.minMaxFrame = Frame(self)
+
+        self.minMaxFrame.pack()
+        self.minMaxFrame.pack_forget()
+
+        self.minByteLabel = Label(self.minMaxFrame, text="Min byte")
+        self.minByteLabel.grid_forget()
+
+        self.minByteEntry = Entry(self.minMaxFrame, width=7)
+        self.minByteEntry.insert(0, str(0))
+        self.minByteEntry.grid_forget()
+
+        self.maxByteLabel = Label(self.minMaxFrame, text="Max byte")
+        self.maxByteLabel.grid_forget()
+
+        self.maxByteEntry = Entry(self.minMaxFrame, width=7)
+        self.maxByteEntry.insert(0, str(255))
+        self.maxByteEntry.grid_forget()
+
+        # ----------------------------------------
+
+        self.randomCheckButton = Checkbutton(self, text="Randomize bytes", variable=self.is_random, onvalue=True, offvalue=False, command=self.random_on_off)
         self.randomCheckButton.pack()
 
         self.replaceCheckButton = Checkbutton(self, text="Replace bytes", variable=self.is_replaced, onvalue=True, offvalue=False)
@@ -80,13 +109,36 @@ class App(Tk):
         self.corruptButton = Button(self, text="Corrupt!", font=("Helvitica", 23, "normal"), command=self.corrupt_file)
         self.corruptButton.pack(side="bottom", pady=20)
 
+    def random_on_off(self):
+        if self.is_random.get():
+            self.addByteLabel.grid_forget()
+            self.addByteEntry.grid_forget()
+
+            self.minMaxFrame.pack()
+
+            self.minByteLabel.grid(row=0, column=0)
+            self.minByteEntry.grid(row=0, column=1, padx=3)
+
+            self.maxByteLabel.grid(row=1, column=0)
+            self.maxByteEntry.grid(row=1, column=1, padx=3)
+
+        else:
+            self.minMaxFrame.pack_forget()
+            self.addByteLabel.grid(row=4, column=0)
+            self.addByteEntry.grid(row=4, column=1, padx=5)
+
     def auto_end_func(self):
-        self.endByteEntry.delete(0, END)
-        self.endByteEntry.insert(0, Path(self.file).stat().st_size)
+        if self.new_file != "" and self.file != "":
+            self.endByteEntry.delete(0, END)
+            self.endByteEntry.insert(0, Path(self.file).stat().st_size)
 
     def corrupt_file(self):
-        baseFile = open(self.file, "rb+")
-        corruptedFile = open(self.new_file, "wb+")
+        try:
+            baseFile = open(self.file, "rb+")
+            corruptedFile = open(self.new_file, "wb+")
+        except FileNotFoundError:
+            self.attach_file()
+            return
 
         def copy_file_contents(mainFile, corruptedFile, endByte):
             for z in range(0, endByte):
@@ -99,20 +151,29 @@ class App(Tk):
                 if currentByte == b"":
                     break
                 currentByte = int.from_bytes(currentByte, byteorder="big")
+
+                if int(self.minByteEntry.get()) > 255: # if min or max value > 255
+                    self.minByteEntry.delete(0, END)
+                    self.minByteEntry.insert(0, str(255))
+
+                if int(self.maxByteEntry.get()) > 255:
+                    self.maxByteEntry.delete(0, END)
+                    self.maxByteEntry.insert(0, str(255))
+
                 if self.is_random:
                     if self.is_replaced: # Replace and randomize bytes
                         currentByte = 0
-                        currentByte += random.randint(0, 255)
-                    else:
-                        currentByte += random.randint(0, 255) # Randomize without replace bytes
+                        currentByte += random.randint(int(self.minByteEntry.get()), int(self.maxByteEntry.get()))
+                    else: # Randomize without replacing bytes
+                        currentByte += random.randint(int(self.minByteEntry.get()), int(self.maxByteEntry.get()))
                 else: # Increase bytes
-                    if self.is_replaced: # is replace enabled
+                    if self.is_replaced: # if replace enabled
                         currentByte = int(self.addByteEntry.get())
                     else:
                         currentByte += int(self.addByteEntry.get())
-                if currentByte > 255:
+                if currentByte > 255 or currentByte < 0: # if byte bigger than 255 or less than 0
                     currentByte = currentByte % 255
-                currentByte = (currentByte).to_bytes(1, byteorder="big")
+                currentByte = currentByte.to_bytes(1, byteorder="big")
                 corruptedFile.write(currentByte)
 
             copy_file_contents(baseFile, corruptedFile, blockSpace)
@@ -187,7 +248,6 @@ class App(Tk):
         output_file_entry.insert("1.0", self.new_file)
 
         win.mainloop()
-
 
 if __name__ == "__main__":
     App().mainloop()
