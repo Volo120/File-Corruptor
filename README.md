@@ -3,8 +3,8 @@
 ---
 # features
 * adding bytes
-* randomize bytes
-* replace bytes
+* randomizing bytes
+* replacing bytes
 ---
 ![img0](/screenshots/0.PNG)
 ![img1](/screenshots/1.PNG)
