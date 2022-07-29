@@ -1,5 +1,5 @@
 # File-Corruptor
-#### a simple file corruptor written in python
+#### a simple and easy to use file corruptor written in python
 ---
 # features
 * adding bytes
