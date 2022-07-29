@@ -1,0 +1,4 @@
+What's new in V1.1?
+
+1. fixing bugs.
+2. advanced byte randomizer.
