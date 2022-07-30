@@ -6,5 +6,6 @@
 * randomizing bytes
 * replacing bytes
 ---
-![img1](/screenshots/1.png)
-![img2](/screenshots/2.png)
+![img1](/screenshots/1.jpg)
+![img2](/screenshots/2.jpg)
+![ps](/screenshots/ps.jpg)
