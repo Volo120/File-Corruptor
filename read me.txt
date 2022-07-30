@@ -2,3 +2,12 @@ What's new in V1.1?
 
 1. fixing bugs.
 2. advanced byte randomizer.
+
+-----------------------------------
+
+What's new in V1.2?
+
+1. new engine menu.
+2. new Replace engine.
+3. Auto end button's text changed to Auto fill.
+4. Quick file attaching shortcuts.
