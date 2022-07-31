@@ -5,6 +5,8 @@
 * adding bytes
 * randomizing bytes
 * replacing bytes
+  * exclusive byte feature
+
 ---
 ![img1](/screenshots/1.jpg)
 ![img2](/screenshots/2.jpg)
