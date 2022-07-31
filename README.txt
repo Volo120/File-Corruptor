@@ -1,9 +1,15 @@
+What's new in V1.3.1?
+
+1. exclusive byte replacement fixed.
+
+-----------------------------------
+
 What's new in V1.3?
 
 1. replace button has been removed from Incrementer engine.
 2. new Options menu.
 3. new Hexadecimal mode.
-4. new Exclusive Checkbutton in Replacer engine.
+4. new Exclusive Checkbutton in Replacer engine. (bug)
 5. bytes limit has been removed from Randomizer engine.
 
 -----------------------------------

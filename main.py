@@ -4,7 +4,7 @@ from pathlib import Path
 import sys, random
 
 class App(Tk):
-    VER = "v1.3"
+    VER = "v1.3.1"
     def __init__(self):
         super().__init__()
         self.title(f"Corruptor {App.VER}")
@@ -341,7 +341,7 @@ class App(Tk):
                         if currentByte == int(targetByte):
                             currentByte = int(replaceByte)
                     else: # exclusive off
-                        currentByte = replaceByte
+                        currentByte = int(replaceByte)
 
                 if currentByte > 255 or currentByte < 0: # if byte bigger than 255 or less than 0
                     currentByte = currentByte % 255
