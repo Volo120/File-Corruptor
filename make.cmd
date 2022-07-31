@@ -6,4 +6,4 @@ cd ..
 rd /s /q __pycache__
 rd /s /q build
 rd /s /q dist
-del /q main.spec
+del /q *.spec
