@@ -1,3 +1,10 @@
+What's new in V1.3.2?
+
+1. bytes incrementing in Replacer engine bug fixed.
+2. red Exit button highlighting.
+
+-----------------------------------
+
 What's new in V1.3.1?
 
 1. exclusive byte replacement fixed.

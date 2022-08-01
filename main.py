@@ -4,7 +4,7 @@ from pathlib import Path
 import sys, random
 
 class App(Tk):
-    VER = "v1.3.1"
+    VER = "v1.3.2"
     def __init__(self):
         super().__init__()
         self.title(f"Corruptor {App.VER}")
@@ -27,7 +27,7 @@ class App(Tk):
 
         self.file_menu.add_command(label="attach file", command=self.attach_file)
         self.file_menu.add_separator()
-        self.file_menu.add_command(label="Exit", command=lambda: sys.exit())
+        self.file_menu.add_command(label="Exit", command=lambda: sys.exit(), activebackground="#AF0000")
 
         self.engine_menu.add_radiobutton(label="Incrementer", variable=self.engine, value=0, command=self.change_engine)
         self.engine_menu.add_radiobutton(label="Randomizer", variable=self.engine, value=1, command=self.change_engine)
@@ -94,12 +94,10 @@ class App(Tk):
         self.minMaxFrame = Frame(self)
 
         self.minByteLabel = Label(self.minMaxFrame, text="Min byte")
-
         self.minByteEntry = Entry(self.minMaxFrame, width=7)
         self.minByteEntry.insert(0, str(0))
 
         self.maxByteLabel = Label(self.minMaxFrame, text="Max byte")
-
         self.maxByteEntry = Entry(self.minMaxFrame, width=7)
         self.maxByteEntry.insert(0, str(255))
 
@@ -227,6 +225,7 @@ class App(Tk):
 
             self.is_random.set(False)
             self.is_replaced.set(False)
+            self.is_exclusive.set(False)
 
         if current_engine == 1: # Randomizer engine
             self.geometry("500x370")
@@ -248,6 +247,7 @@ class App(Tk):
 
             self.is_random.set(True)
             self.is_replaced.set(False)
+            self.is_exclusive.set(False)
 
         if current_engine == 2: # Replacer engine
             self.geometry("500x370")
@@ -315,17 +315,25 @@ class App(Tk):
             targetByte = int(targetByte, 16)
             replaceByte = int(replaceByte, 16)
 
+        # for the swapper engine
+        currentByteList1 = []
+        bufferList = []
+        currentByteList2 = []
+
         def copy_file_contents(mainFile, corruptedFile, endByte):
             for z in range(0, endByte):
                 currentByte = mainFile.read(1)
                 corruptedFile.write(currentByte)
 
-        def add_corrupt(baseFile, corruptedFile, blockSpace):
+        def corrupt(baseFile, corruptedFile, blockSpace):
             for y in range(0, int(blockSize)):
                 currentByte = baseFile.read(1)
                 if currentByte == b"":
                     break
                 currentByte = int.from_bytes(currentByte, byteorder="big")
+
+                if self.engine.get() == 1: # Increase bytes
+                    currentByte += int(addByte)
 
                 if self.is_random and self.engine.get() == 1:
                     if self.is_replaced: # Replace and randomize bytes
@@ -333,8 +341,6 @@ class App(Tk):
                         currentByte += random.randint(int(minByte), int(maxByte))
                     else: # Randomize without replacing bytes
                         currentByte += random.randint(int(minByte), int(maxByte))
-                else: # Increase bytes
-                    currentByte += int(addByte)
 
                 if self.is_replaced and self.engine.get() == 2: # Replace bytes
                     if self.is_exclusive.get(): # exclusive on
@@ -355,7 +361,7 @@ class App(Tk):
 
         corruptStepSize = int(blockSize) + int(blockSpace)
         for x in range(int(start), int(end), corruptStepSize):
-            add_corrupt(baseFile, corruptedFile, int(blockSpace))
+            corrupt(baseFile, corruptedFile, int(blockSpace))
 
         while True:
             currentByte = baseFile.read(1)
