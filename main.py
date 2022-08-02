@@ -4,7 +4,7 @@ from pathlib import Path
 import sys, random
 
 class App(Tk):
-    VER = "v1.3.2"
+    VER = "v1.3.3"
     def __init__(self):
         super().__init__()
         self.title(f"Corruptor {App.VER}")
@@ -315,11 +315,6 @@ class App(Tk):
             targetByte = int(targetByte, 16)
             replaceByte = int(replaceByte, 16)
 
-        # for the swapper engine
-        currentByteList1 = []
-        bufferList = []
-        currentByteList2 = []
-
         def copy_file_contents(mainFile, corruptedFile, endByte):
             for z in range(0, endByte):
                 currentByte = mainFile.read(1)
@@ -332,7 +327,7 @@ class App(Tk):
                     break
                 currentByte = int.from_bytes(currentByte, byteorder="big")
 
-                if self.engine.get() == 1: # Increase bytes
+                if self.engine.get() == 0: # Increase bytes
                     currentByte += int(addByte)
 
                 if self.is_random and self.engine.get() == 1:
