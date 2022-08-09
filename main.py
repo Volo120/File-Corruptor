@@ -1,10 +1,10 @@
 from tkinter import *
 from tkinter import filedialog, messagebox
 from pathlib import Path
-import sys, random
+import sys, random, os
 
 class App(Tk):
-    VER = "v1.3.3"
+    VER = "v1.4"
     def __init__(self):
         super().__init__()
         self.title(f"Corruptor {App.VER}")
@@ -25,7 +25,9 @@ class App(Tk):
         self.engine_menu = Menu(self.menu, tearoff=False)
         self.options_menu = Menu(self.menu, tearoff=False)
 
-        self.file_menu.add_command(label="attach file", command=self.attach_file)
+        self.file_menu.add_command(label="Attach file", command=self.attach_file)
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label="Save/Load Presets", command=self.presets)
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Exit", command=lambda: sys.exit(), activebackground="#AF0000")
 
@@ -124,6 +126,123 @@ class App(Tk):
         self.change_engine()
 
         self.file_label.bind("<Button-1>", self.attach_file)
+
+    def presets(self):
+        win = Toplevel(self)
+        win.geometry("500x400")
+        win.title("Presets manager")
+        pathName = "Presets"
+        extension = ".preset"
+
+        def createPresetsFolder():
+            if not os.path.exists(pathName):
+                os.mkdir(pathName)
+
+        def updatePresetsBox():
+            createPresetsFolder()
+            presetsBox.delete(0, END)
+            dirs = os.listdir(pathName)
+            for file in dirs:
+                if file.endswith(extension):
+                    presetsBox.insert(0, file)
+
+        def save():
+            startByte = str(self.startByteEntry.get()) + "\n"
+            endByte = str(self.endByteEntry.get()) + "\n"
+            blockSize = str(self.byteBlockSizeEntry.get()) + "\n"
+            blockSpace = str(self.byteBlockSpaceEntry.get()) + "\n"
+            addByte = str(self.addByteEntry.get()) + "\n"
+            minByte = str(self.minByteEntry.get()) + "\n"
+            maxByte = str(self.maxByteEntry.get()) + "\n"
+            targetByte = str(self.targetByteEntry.get()) + "\n"
+            replaceByte = str(self.replaceWithEntry.get()) + "\n"
+            replace = str(self.is_replaced.get()) + "\n"
+            exclusive = str(self.is_exclusive.get()) + "\n"
+            baseFile = self.file + "\n"
+            corruptedFile = self.new_file + "\n"
+
+            newData = [
+                "startByte:"+startByte,
+                "endByte:"+endByte,
+                "blockSize:"+blockSize,
+                "blockSpace:"+blockSpace,
+                "addByte:"+addByte,
+                "minByte:"+minByte,
+                "maxByte:"+maxByte,
+                "targetByte:"+targetByte,
+                "replaceByte:"+replaceByte,
+                "replace:"+replace,
+                "exclusive:"+exclusive,
+                "baseFile:"+baseFile,
+                "corruptedFile:"+corruptedFile
+            ]
+
+            createPresetsFolder()
+            fileName = presetsEntry.get("1.0", END).strip()
+            with open(f"{pathName}/{fileName}{extension}", "w") as file:
+                file.writelines(newData)
+
+            updatePresetsBox()
+
+        def load():
+            with open(f"{pathName}/{presetsBox.get(ACTIVE)}") as file:
+                data = file.read().split("\n")
+
+            self.startByteEntry.delete(0, END)
+            self.endByteEntry.delete(0, END)
+            self.byteBlockSizeEntry.delete(0, END)
+            self.byteBlockSpaceEntry.delete(0, END)
+            self.addByteEntry.delete(0, END)
+            self.minByteEntry.delete(0, END)
+            self.maxByteEntry.delete(0, END)
+            self.targetByteEntry.delete(0, END)
+            self.replaceWithEntry.delete(0, END)
+            
+            self.startByteEntry.insert(0, data[0].strip().split(":")[-1])
+            self.endByteEntry.insert(0, data[1].strip().split(":")[-1])
+            self.byteBlockSizeEntry.insert(0, data[2].strip().split(":")[-1])
+            self.byteBlockSpaceEntry.insert(0, data[3].strip().split(":")[-1])
+            self.addByteEntry.insert(0, data[4].strip().split(":")[-1])
+            self.minByteEntry.insert(0, data[5].strip().split(":")[-1])
+            self.maxByteEntry.insert(0, data[6].strip().split(":")[-1])
+            self.targetByteEntry.insert(0, data[7].strip().split(":")[-1])
+            self.replaceWithEntry.insert(0, data[8].strip().split(":")[-1])
+            self.file = data[11].strip().split(":")[-2] + ":" + data[11].strip().split(":")[-1]
+            self.new_file = data[12].strip().split(":")[-2] + ":" + data[12].strip().split(":")[-1]
+            self.file_label['text'] = self.file
+
+            # Converting from string to boolean...
+            replaced = data[9].strip().split(":")[-1]
+            exclusive = data[10].strip().split(":")[-1]
+
+            if replaced == "False":
+                replaced = ""
+
+            if exclusive == "False":
+                exclusive = ""
+
+            self.is_replaced.set(bool(replaced))
+            self.is_exclusive.set(bool(exclusive))
+
+            win.destroy()
+
+        presetsLabel = Label(win, text="Select or insert new presets file name...")
+        presetsLabel.pack(pady=10)
+
+        presetsEntry = Text(win, width=20, height=1)
+        presetsEntry.pack()
+
+        presetsBox = Listbox(win, width=25, height=10)
+        presetsBox.pack(pady=5)
+
+        saveButton = Button(win, text="Save", width=10, command=save)
+        saveButton.pack()
+
+        loadButton = Button(win, text="Load", width=10, command=load)
+        loadButton.pack(pady=3)
+
+        updatePresetsBox()
+        win.mainloop()
 
     def exclusive_func(self):
         if self.is_exclusive.get():
