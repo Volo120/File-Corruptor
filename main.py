@@ -4,7 +4,7 @@ from pathlib import Path
 import sys, random, os
 
 class App(Tk):
-    VER = "v1.4"
+    VER = "v1.4.1"
     def __init__(self):
         super().__init__()
         self.title(f"Corruptor {App.VER}")
@@ -160,6 +160,8 @@ class App(Tk):
             exclusive = str(self.is_exclusive.get()) + "\n"
             baseFile = self.file + "\n"
             corruptedFile = self.new_file + "\n"
+            engine = str(self.engine.get()) + "\n"
+            is_hex = str(self.is_hex.get()) + "\n"
 
             newData = [
                 "startByte:"+startByte,
@@ -174,7 +176,9 @@ class App(Tk):
                 "replace:"+replace,
                 "exclusive:"+exclusive,
                 "baseFile:"+baseFile,
-                "corruptedFile:"+corruptedFile
+                "corruptedFile:"+corruptedFile,
+                "engine:"+engine,
+                "hex:"+is_hex
             ]
 
             createPresetsFolder()
@@ -182,6 +186,18 @@ class App(Tk):
             with open(f"{pathName}/{fileName}{extension}", "w") as file:
                 file.writelines(newData)
 
+            presetsEntry.delete("1.0", END)
+            updatePresetsBox()
+
+        def delete():
+            file = presetsBox.get(ACTIVE)
+
+            if not file:
+                return messagebox.showinfo(title="Info", message="There's nothing to delete.")
+
+            message = messagebox.askyesno(title="Warning", message=f"Do you really wish to delete \"{file}\"?")
+            if message:
+                os.remove(f"{pathName}/{file}")
             updatePresetsBox()
 
         def load():
@@ -210,10 +226,13 @@ class App(Tk):
             self.file = data[11].strip().split(":")[-2] + ":" + data[11].strip().split(":")[-1]
             self.new_file = data[12].strip().split(":")[-2] + ":" + data[12].strip().split(":")[-1]
             self.file_label['text'] = self.file
+            self.engine.set(int(data[13].strip().split(":")[-1]))
+            self.change_engine()
 
             # Converting from string to boolean...
             replaced = data[9].strip().split(":")[-1]
             exclusive = data[10].strip().split(":")[-1]
+            HEX = data[14].strip().split(":")[-1]
 
             if replaced == "False":
                 replaced = ""
@@ -221,8 +240,12 @@ class App(Tk):
             if exclusive == "False":
                 exclusive = ""
 
+            if HEX == "False":
+                HEX = ""
+
             self.is_replaced.set(bool(replaced))
             self.is_exclusive.set(bool(exclusive))
+            self.is_hex.set(bool(HEX))
 
             win.destroy()
 
@@ -232,14 +255,30 @@ class App(Tk):
         presetsEntry = Text(win, width=20, height=1)
         presetsEntry.pack()
 
-        presetsBox = Listbox(win, width=25, height=10)
-        presetsBox.pack(pady=5)
+        presetsBoxFrame = Frame(win)
+        presetsBoxFrame.pack(pady=5)
 
-        saveButton = Button(win, text="Save", width=10, command=save)
-        saveButton.pack()
+        scrollbar = Scrollbar(presetsBoxFrame)
+        scrollbar.pack(fill=Y, side=RIGHT)
 
-        loadButton = Button(win, text="Load", width=10, command=load)
-        loadButton.pack(pady=3)
+        presetsBox = Listbox(presetsBoxFrame, width=35, height=12, justify=CENTER, activestyle=NONE, selectbackground="#000000", yscrollcommand=scrollbar.set)
+        presetsBox.pack()
+
+        scrollbar.config(command=presetsBox.yview)
+
+        presetsFrame = Frame(win)
+        presetsFrame.pack(pady=10)
+
+        saveButton = Button(presetsFrame, text="Save", width=10, command=save)
+        saveButton.grid(row=0, column=0, padx=3)
+
+        loadButton = Button(presetsFrame, text="Load", width=10, command=load)
+        loadButton.grid(row=0, column=1, padx=3)
+
+        deleteButton = Button(presetsFrame, text="Delete", width=10, command=delete)
+        deleteButton.grid(row=0, column=2, padx=3)
+
+        win.bind("<Return>", lambda x: save())
 
         updatePresetsBox()
         win.mainloop()

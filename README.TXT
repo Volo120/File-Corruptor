@@ -1,3 +1,10 @@
+What's new in V1.4.1?
+
+1. Better Presets file manager.
+2. simple bugs fixes.
+
+-----------------------------------
+
 What's new in V1.4?
 
 1. Presets file save and/or load.
