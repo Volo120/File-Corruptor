@@ -3,12 +3,13 @@ from tkinter import filedialog, messagebox
 from pathlib import Path
 import sys, random, os
 
-class App(Tk):
-    VER = "v1.4.1"
+class Corruptor(Tk):
+    VERSION = "v1.4.2"
     def __init__(self):
         super().__init__()
-        self.title(f"Corruptor {App.VER}")
-        self.geometry("500x400")
+        self.title(f"Corruptor {Corruptor.VERSION}")
+        self.icons = [f"./icons/{x}" for x in os.listdir("./icons/")]
+        self.iconbitmap(self.icons[0])
 
         self.file = ""
         self.new_file = ""
@@ -131,6 +132,7 @@ class App(Tk):
         win = Toplevel(self)
         win.geometry("500x400")
         win.title("Presets manager")
+        win.iconbitmap(self.icons[1])
         pathName = "Presets"
         extension = ".preset"
 
@@ -163,6 +165,9 @@ class App(Tk):
             engine = str(self.engine.get()) + "\n"
             is_hex = str(self.is_hex.get()) + "\n"
 
+            if len(baseFile) == 1 or len(corruptedFile) == 1:
+                return messagebox.showerror(title="Hold on!", message="You cannot save presets file before attaching\ninput and output files!")
+
             newData = [
                 "startByte:"+startByte,
                 "endByte:"+endByte,
@@ -191,16 +196,17 @@ class App(Tk):
 
         def delete():
             file = presetsBox.get(ACTIVE)
-
             if not file:
                 return messagebox.showinfo(title="Info", message="There's nothing to delete.")
-
             message = messagebox.askyesno(title="Warning", message=f"Do you really wish to delete \"{file}\"?")
             if message:
                 os.remove(f"{pathName}/{file}")
             updatePresetsBox()
 
         def load():
+            file = presetsBox.get(ACTIVE)
+            if not file:
+                return messagebox.showinfo(title="Info", message="There's nothing to load.")
             with open(f"{pathName}/{presetsBox.get(ACTIVE)}") as file:
                 data = file.read().split("\n")
 
@@ -527,6 +533,7 @@ class App(Tk):
     def attach_file(self, event=None):
         win = Toplevel(self)
         win.geometry("600x140")
+        win.iconbitmap(self.icons[0])
 
         def open_file():
             file = filedialog.askopenfile()
@@ -535,15 +542,14 @@ class App(Tk):
             input_file_entry.insert("1.0", file.name)
 
         def save_file():
-            file = filedialog.asksaveasfile()
+            file = filedialog.asksaveasfile(defaultextension=input_file_entry.get('1.0', END).split('.')[-1], filetypes=[[f"{input_file_entry.get('1.0', END).split('.')[-1]}".upper()+" Files", f"*.{input_file_entry.get('1.0', END).split('.')[-1]}"], ["All Files", "*.*"]])
             if not file: return
             output_file_entry.delete("1.0", END)
             output_file_entry.insert("1.0", file.name)
 
         def ok_func():
             if Path(input_file_entry.get("1.0", END).strip()).is_dir() or Path(output_file_entry.get("1.0", END).strip()).is_dir():
-                messagebox.showerror(title="Error", message="Please provide a valid file")
-                return
+                return messagebox.showerror(title="Error", message="Please provide a valid file")
 
             if len(input_file_entry.get("1.0", END).strip()) > 0 and len(output_file_entry.get("1.0", END).strip()) > 0:
                 self.file = input_file_entry.get("1.0", END).strip()
@@ -554,31 +560,33 @@ class App(Tk):
         frame = Frame(win)
         frame.pack(pady=5)
 
-        input_file_label = Label(frame, text="input file")
+        input_file_label = Label(frame, text="Input file")
         input_file_label.grid(row=0, column=0, padx=3)
 
         input_file_entry = Text(frame, width=30, height=1)
         input_file_entry.grid(row=0, column=1, padx=3)
 
-        input_file_button = Button(frame, text="open...", command=open_file)
+        input_file_button = Button(frame, text="Open...", command=open_file)
         input_file_button.grid(row=0, column=2, padx=3)
 
-        output_file_label = Label(frame, text="output file")
+        output_file_label = Label(frame, text="Output file")
         output_file_label.grid(row=1, column=0, padx=3)
 
         output_file_entry = Text(frame, width=30, height=1)
         output_file_entry.grid(row=1, column=1, padx=3)
 
-        output_file_button = Button(frame, text="open...", command=save_file)
+        output_file_button = Button(frame, text="Open...", command=save_file)
         output_file_button.grid(row=1, column=2, padx=3, pady=5)
 
-        ok_button = Button(win, text="ok", width=10, command=ok_func)
+        ok_button = Button(win, text="OK", width=10, command=ok_func)
         ok_button.pack()
 
         input_file_entry.insert("1.0", self.file)
         output_file_entry.insert("1.0", self.new_file)
 
+        win.bind("<Return>", lambda x: ok_func())
         win.mainloop()
 
 if __name__ == "__main__":
-    App().mainloop()
+    app = Corruptor()
+    app.mainloop()

@@ -1,3 +1,10 @@
+What's new in V1.4.2?
+
+1. more bug fixes.
+2. new GUI icons. *Do not delete or move the icons folder*
+
+-----------------------------------
+
 What's new in V1.4.1?
 
 1. Better Presets file manager.
